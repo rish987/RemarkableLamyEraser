@@ -9,6 +9,7 @@
 
 #include "configuration.h"
 #include "effects.h"
+#include "effects_data.h"
 #include "orientation.h"
 #include "triggers.h"
 
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
 
   int temp;
 
-#define TOGGLE temp == ERASER_ERASE || temp == ERASER_SELECTION || temp == SELECT
+#define TOGGLE temp == ERASER_ERASE || temp == ERASER_SELECTION || temp == SELECT || temp == WRITING_HL
 
   temp = config.click1Effect;
   if (TOGGLE)
@@ -225,6 +226,14 @@ int main(int argc, char *argv[]) {
       case WRITING_GREY:
         printf("writing grey colour\n");
         action_grey(fd_touch);
+        break;
+      case WRITING_HL:
+        printf("writing highlighter\n");
+        action_hl(fd_touch);
+        break;
+      case HL_TOGGLE:
+        printf("toggle highlighter\n");
+        toggle_hl(fd_touch);
         break;
 
       // tools here
