@@ -217,6 +217,7 @@ void action_tool_eraser(struct input_event *ev_pen, int fd_pen) {
 }
 
 static int toolEraseSelect = 0;
+static int oneOffEraseSelect = 0;
 
 void activate_tool_eraser_select(int fd_touch) {
   write_oriented_tap_sequence(fd_touch, 12, ERASER_PANEL, ERASER_PANEL,
@@ -260,6 +261,19 @@ void toggle_tool_select(int fd_touch) {
     deactivate_tool_select(fd_touch);
   else
     activate_tool_select(fd_touch);
+}
+
+void one_off_erase_select(int fd_touch) {
+  activate_tool_eraser_select(fd_touch);
+  oneOffEraseSelect = true;
+}
+
+void pen_up(int fd_touch) {
+  if (oneOffEraseSelect) {
+    write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP);
+    deactivate_tool_eraser_select(fd_touch);
+    oneOffEraseSelect = false;
+  }
 }
 
 // Test stored locations in effects_data.h

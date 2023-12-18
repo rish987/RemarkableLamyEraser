@@ -45,6 +45,10 @@ void action_grey(int fd_touch);
 void action_hl(int fd_touch);
 void toggle_hl(int fd_touch);
 
+void one_off_erase_select(int fd_touch);
+
+void pen_up(int fd_touch);
+
 void test_locations(int fd);
 
 #endif // EFFECTS_H

@@ -9,24 +9,32 @@
 #define PDF      1
 
 enum effects {
-  NULL_EFFECT,         // Null effect
-  TOOLBAR,             // action: toolbar
-  WRITING,             // action: writing
-  TEXT,                // action: text button
-  ERASER_PANEL,        // tap on eraser panel, not useful on it's own
-  SELECT,              // action: select
-  UNDO,                // action: undo button
-  REDO,                // action: redo button
-  ERASER_ERASE,        // action: eraser
-  ERASER_SELECTION,    // action: eraser-select
-  ERASER_ERASE_ALL,    // action: eraser-eraser-all
-  WRITING_FINELINER,   // action: writing-fineliner
-  WRITING_CALLIGRAPHY, // action: writing-calligraphy
-  WRITING_BLACK,       // action: writing-black
-  WRITING_GREY,        // action: writing-grey
-  WRITING_HL,          // action: writing-hl
-  NUM_EFFECTS,         // Total number of effects
+  NULL_EFFECT,              // Null effect
+  TOOLBAR,                  // action: toolbar
+  WRITING,                  // action: writing
+  TEXT,                     // action: text button
+  ERASER_PANEL,             // tap on eraser panel, not useful on it's own
+  SELECT,                   // action: select
+  UNDO,                     // action: undo button
+  REDO,                     // action: redo button
+  ERASER_ERASE,             // action: eraser
+  ERASER_SELECTION,         // action: eraser-selection
+  ERASER_ERASE_ALL,         // action: eraser-eraser-all
+  WRITING_FINELINER,        // action: writing-fineliner
+  WRITING_CALLIGRAPHY,      // action: writing-calligraphy
+  WRITING_BLACK,            // action: writing-black
+  WRITING_GREY,             // action: writing-grey
+  WRITING_HL,               // action: writing-hl
+  NUM_EFFECTS,              // Total number of effects
 };
+
+// extra effects that do not exactly correspond to a screen position
+#define ONE_OFF_ERASER_SELECTION (NUM_EFFECTS + 0) // action: one-off-eraser-selection
+
+#define NUM_EXTRA_EFFECTS 1 // remember to update this if adding new effects above!
+
+// internal effects
+#define PEN_UP_EFFECT        (NUM_EFFECTS + NUM_EXTRA_EFFECTS + 0)
 
 //define offsets for the effect functions
 #define HOLD_OFF_OFFSET      0x0ff
@@ -42,24 +50,27 @@ enum effects {
 #define SELECT_TOGGLE        (SELECT           + TOGGLE_OFFSET)
 #define HL_TOGGLE            (WRITING_HL       + TOGGLE_OFFSET)
 
+#define NUM_TOTAL_EFFECTS NUM_EFFECTS + NUM_EXTRA_EFFECTS
+
 //recognized words in config file
-static const char* EFFECTS[NUM_EFFECTS] = {
-  "null-effect",        //null effect          0
-  "toolbar",            //TOOLBAR              1
-  "writing",            //WRITING              2
-  "text",               //TEXT                 3
-  "eraser-panel",       //ERASER               4
-  "select",             //SELECT               5
-  "undo",               //UNDO                 6
-  "redo",               //REDO                 7
-  "eraser-erase",       //ERASER_ERASE         8
-  "eraser-selection",   //ERASER_SELECT        9
-  "eraser-erase-all",   //ERASER_ERASE_ALL    10
-  "writing-fineliner",  //WRITING_FINELINER   11
-  "writing-calligraphy",//WRITING_CALLIGRAPHY 12
-  "writing-black",      //WRITING_BLACK       13
-  "writing-grey",       //WRITING_GREY        14
-  "writing-hl",         //WRITING_HL          15
+static const char* EFFECTS[NUM_TOTAL_EFFECTS] = {
+  "null-effect",              //null effect               0
+  "toolbar",                  //TOOLBAR                   1
+  "writing",                  //WRITING                   2
+  "text",                     //TEXT                      3
+  "eraser-panel",             //ERASER                    4
+  "select",                   //SELECT                    5
+  "undo",                     //UNDO                      6
+  "redo",                     //REDO                      7
+  "eraser-erase",             //ERASER_ERASE              8
+  "eraser-selection",         //ERASER_SELECT             9
+  "eraser-erase-all",         //ERASER_ERASE_ALL         10
+  "writing-fineliner",        //WRITING_FINELINER        11
+  "writing-calligraphy",      //WRITING_CALLIGRAPHY      12
+  "writing-black",            //WRITING_BLACK            13
+  "writing-grey",             //WRITING_GREY             14
+  "writing-hl",               //WRITING_HL               15
+  "one-off-eraser-selection", //ONE_OFF_ERASER_SELECTION 16
 };
 
 #define T_RM2_RHX 60  // Define RM2 toolbar column touchscreen location

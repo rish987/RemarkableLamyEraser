@@ -25,6 +25,7 @@ int get_triggger(struct input_event *ev_pen) {
   static struct timeval prevTime;
   static struct timeval abortTime;
   static bool           abort;
+  static bool           contact;
   static struct timeval possiblyReleasedTime;
   static bool           possiblyReleased;
   static bool           possiblyLongClick;
@@ -43,6 +44,7 @@ int get_triggger(struct input_event *ev_pen) {
         clickRegistered = false;
         possiblyLongClick = false;
         longClick = false;
+        contact = false;
         if (sent) {
           trigger = 0x40 | clicks; // press hold off type message 0b01xxxxxx
           sent    = false;
@@ -55,6 +57,16 @@ int get_triggger(struct input_event *ev_pen) {
   if (ev_pen->code == BTN_TOOL_PEN && ev_pen->value == 0) {
     abortTime = ev_pen->time;
     abort = true;
+  }
+
+  if (ev_pen->code == ABS_DISTANCE && contact) {
+    printf("Pen lifted from screen\n");
+    contact = false;
+    trigger = PEN_UP; // pen-up type message
+  }
+
+  if (ev_pen->code == ABS_DISTANCE && ev_pen->value == 0) {
+    contact = true;
   }
 
   bool released = false;

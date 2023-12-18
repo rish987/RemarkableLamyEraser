@@ -42,7 +42,7 @@ int get_trigger_config(const char *path, struct configuration *config) {
         break;
       }
     }
-    for (int j = 0; j < NUM_EFFECTS; j++) {
+    for (int j = 0; j < NUM_TOTAL_EFFECTS; j++) {
       if (!strcmp(effect, EFFECTS[j])) {
         read_effect = j;
         break;
