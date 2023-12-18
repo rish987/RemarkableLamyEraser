@@ -195,6 +195,8 @@ void toggle_tool_eraser(int fd_pen) {
     activate_tool_eraser(fd_pen);
 }
 
+static int oneOffHl = 0;
+
 void toggle_hl(int fd_pen) {
   if (hl) {
     action_fineliner(fd_pen);
@@ -263,6 +265,11 @@ void toggle_tool_select(int fd_touch) {
     activate_tool_select(fd_touch);
 }
 
+void one_off_hl(int fd_touch) {
+  action_hl(fd_touch);
+  oneOffHl = true;
+}
+
 void one_off_erase_select(int fd_touch) {
   activate_tool_eraser_select(fd_touch);
   oneOffEraseSelect = true;
@@ -273,6 +280,11 @@ void pen_up(int fd_touch) {
     write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP);
     deactivate_tool_eraser_select(fd_touch);
     oneOffEraseSelect = false;
+  }
+  else if (oneOffHl) {
+    write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP);
+    action_fineliner(fd_touch);
+    oneOffHl = false;
   }
 }
 

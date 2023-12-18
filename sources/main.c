@@ -283,6 +283,11 @@ int main(int argc, char *argv[]) {
         one_off_erase_select(fd_touch);
         break;
 
+      case ONE_OFF_HL:
+        printf("one-off highlighter\n");
+        one_off_hl(fd_touch);
+        break;
+
       case PEN_UP_EFFECT:
         pen_up(fd_touch);
         break;

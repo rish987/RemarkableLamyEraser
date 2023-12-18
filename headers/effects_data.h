@@ -30,8 +30,9 @@ enum effects {
 
 // extra effects that do not exactly correspond to a screen position
 #define ONE_OFF_ERASER_SELECTION (NUM_EFFECTS + 0) // action: one-off-eraser-selection
+#define ONE_OFF_HL (NUM_EFFECTS + 1) // action: one-off-hl-selection
 
-#define NUM_EXTRA_EFFECTS 1 // remember to update this if adding new effects above!
+#define NUM_EXTRA_EFFECTS 2 // remember to update this if adding new effects above!
 
 // internal effects
 #define PEN_UP_EFFECT        (NUM_EFFECTS + NUM_EXTRA_EFFECTS + 0)
@@ -71,6 +72,7 @@ static const char* EFFECTS[NUM_TOTAL_EFFECTS] = {
   "writing-grey",             //WRITING_GREY             14
   "writing-hl",               //WRITING_HL               15
   "one-off-eraser-selection", //ONE_OFF_ERASER_SELECTION 16
+  "one-off-hl",               //ONE_OFF_HL               17
 };
 
 #define T_RM2_RHX 60  // Define RM2 toolbar column touchscreen location
