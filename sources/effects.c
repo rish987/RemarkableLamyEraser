@@ -280,13 +280,21 @@ void toggle_tool_select(int fd_touch) {
 }
 
 void one_off_hl(int fd_touch) {
-  action_hl(fd_touch);
-  oneOffHl = true;
+  if (!oneOffHl) {
+    action_hl(fd_touch);
+    oneOffHl = true;
+  }
+  else
+    pen_up(fd_touch);
 }
 
 void one_off_erase_select(int fd_touch) {
-  activate_tool_eraser_select(fd_touch);
-  oneOffEraseSelect = true;
+  if (!oneOffEraseSelect) {
+    activate_tool_eraser_select(fd_touch);
+    oneOffEraseSelect = true;
+  }
+  else
+    pen_up(fd_touch);
 }
 
 void pen_up(int fd_touch) {
