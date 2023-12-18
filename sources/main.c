@@ -147,6 +147,8 @@ int main(int argc, char *argv[]) {
       case HOLD_3_OFF: effect = config.hold3Effect + HOLD_OFF_OFFSET; break;
       case HOLD_4_OFF: effect = config.hold4Effect + HOLD_OFF_OFFSET; break;
       case HOLD_5_OFF: effect = config.hold5Effect + HOLD_OFF_OFFSET; break;
+
+      case PEN_UP: effect = PEN_UP_EFFECT; break;
       default:
         effect = NULL_EFFECT;
     }
@@ -236,6 +238,15 @@ int main(int argc, char *argv[]) {
       case SELECT_TOGGLE:
         printf("writing select\n");
         toggle_tool_select(fd_touch);
+        break;
+
+      case ONE_OFF_ERASER_SELECTION:
+        printf("one-off eraser select\n");
+        one_off_erase_select(fd_touch);
+        break;
+
+      case PEN_UP_EFFECT:
+        pen_up(fd_touch);
         break;
     }
     action_tool_eraser(&ev_wacom, fd_wacom);
