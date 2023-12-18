@@ -8,7 +8,7 @@
 #include <effects.h>
 #include <effects_data.h>
 
-int get_trigger_config(const char *path, struct configuration *config) {
+int get_trigger_config(const char *path, struct configuration *c) {
   // returns 0 on success
   // returns 1 if error in configuration file
   //  returns -1 if configuration file doesn't exist
@@ -17,9 +17,9 @@ int get_trigger_config(const char *path, struct configuration *config) {
   int     lineNum = 0;
   size_t  len     = 0;
   ssize_t read;
-  char    trigger[24]  = "--";
+  char    cfg[24]  = "--";
   char    effect[24]   = "--";
-  int     read_trigger = -1, read_effect = -1;
+  int     read_cfg = -1, read_effect = -1;
 
   fp = fopen(path, "r");
   if (fp == NULL) return -1;
@@ -29,16 +29,16 @@ int get_trigger_config(const char *path, struct configuration *config) {
       continue;
     }
 
-    if (sscanf(line, "%s %s", trigger, effect) == 2) {
-      printf("Line %2d: Read trigger <%s> with effect <%s>\n", lineNum, trigger, effect);
+    if (sscanf(line, "%s %s", cfg, effect) == 2) {
+      printf("Line %2d: Read trigger <%s> with effect <%s>\n", lineNum, cfg, effect);
     } else {
-      // printf("Line %2d: Read trigger <%s> has no effect.\n", lineNum, trigger);
+      // printf("Line %2d: Read trigger <%s> has no effect.\n", lineNum, cfg);
       strcpy(effect, "null-effect");
     }
 
-    for (int i = 0; i < NUM_TRIGGERS; i++) {
-      if (!strcmp(trigger, triggers[i])) {
-        read_trigger = i;
+    for (int i = 0; i < NUM_TOTAL_CONFIGS; i++) {
+      if (!strcmp(cfg, configs[i])) {
+        read_cfg = i;
         break;
       }
     }
@@ -48,8 +48,8 @@ int get_trigger_config(const char *path, struct configuration *config) {
         break;
       }
     }
-    if (read_trigger == -1) {
-      printf("Invalid trigger %s in line %d of configuration file at %s\n", trigger,
+    if (read_cfg == -1) {
+      printf("Invalid config key %s in line %d of configuration file at %s\n", cfg,
              lineNum, path);
       return 1;
     }
@@ -59,22 +59,27 @@ int get_trigger_config(const char *path, struct configuration *config) {
       return 1;
     }
 
-    switch (read_trigger) {
-      case TRIGGER_CLICK_1: config->click1Effect     = read_effect; break;
-      case TRIGGER_CLICK_2: config->click2Effect     = read_effect; break;
-      case TRIGGER_CLICK_3: config->click3Effect     = read_effect; break;
-      case TRIGGER_CLICK_4: config->click4Effect     = read_effect; break;
-      case TRIGGER_CLICK_5: config->click5Effect     = read_effect; break;
-      case TRIGGER_HOLD_1:  config->hold1Effect      = read_effect; break;
-      case TRIGGER_HOLD_2:  config->hold2Effect      = read_effect; break;
-      case TRIGGER_HOLD_3:  config->hold3Effect      = read_effect; break;
-      case TRIGGER_HOLD_4:  config->hold4Effect      = read_effect; break;
-      case TRIGGER_HOLD_5:  config->hold5Effect      = read_effect; break;
-      case TRIGGER_LCLICK:  config->longClick1Effect = read_effect; break;
+    if (read_cfg >= NUM_TRIGGERS) {
+      printf("Line %2d: flag <%s>(%d) was set.\n", lineNum, cfg, read_cfg);
     }
-    strcpy(trigger, "--");
+
+    switch (read_cfg) {
+      case TRIGGER_CLICK_1: c->click1Effect     = read_effect; break;
+      case TRIGGER_CLICK_2: c->click2Effect     = read_effect; break;
+      case TRIGGER_CLICK_3: c->click3Effect     = read_effect; break;
+      case TRIGGER_CLICK_4: c->click4Effect     = read_effect; break;
+      case TRIGGER_CLICK_5: c->click5Effect     = read_effect; break;
+      case TRIGGER_HOLD_1:  c->hold1Effect      = read_effect; break;
+      case TRIGGER_HOLD_2:  c->hold2Effect      = read_effect; break;
+      case TRIGGER_HOLD_3:  c->hold3Effect      = read_effect; break;
+      case TRIGGER_HOLD_4:  c->hold4Effect      = read_effect; break;
+      case TRIGGER_HOLD_5:  c->hold5Effect      = read_effect; break;
+      case TRIGGER_LCLICK:  c->longClick1Effect = read_effect; break;
+      case ASSUME_TB_OPEN:  c->assumeTBOpen     = 1          ; break;
+    }
+    strcpy(cfg, "--");
     strcpy(effect, "--");
-    read_trigger = -1;
+    read_cfg = -1;
     read_effect  = -1;
   }
   fclose(fp);

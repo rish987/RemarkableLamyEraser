@@ -142,6 +142,8 @@ int main(int argc, char *argv[]) {
   int flags = fcntl(fd_touch, F_GETFL, 0);
   fcntl(fd_touch, F_SETFL, flags | O_NONBLOCK);
 
+  setAssumeTBOpen(config.assumeTBOpen);
+
   // Main loop body
   for (;;) {
     if (read(fd_touch, &ev_touch, input_event_size)) { // non-blocking
