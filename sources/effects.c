@@ -74,8 +74,25 @@ void write_tap_with_touch(int fd_touch, const int location[2]) {
   write_event(fd_touch, event);
 }
 
-int write_oriented_tap_sequence(int fd, int numLocations, ...) {
+void write_oriented_tap(int fd, toolbar_orientation orientation, int action) {
   int     actionLocation[2];
+  if (action == SLEEP) {
+    usleep(50000);
+  } else if (action == HALF_SLEEP) {
+    usleep(100000);
+  } else if (action == LONG_SLEEP) {
+    usleep(550000);
+  } else {
+    actionLocation[0] = LOCATION_LOOKUP_TOUCH[orientation.doc_type][action]
+                                             [orientation.orientation][0];
+    actionLocation[1] = LOCATION_LOOKUP_TOUCH[orientation.doc_type][action]
+                                             [orientation.orientation][1];
+    write_tap_with_touch(fd, actionLocation);
+  }
+}
+
+
+int write_oriented_tap_sequence(int fd, int numLocations, ...) {
   int     action;
   va_list actionType;
   va_start(actionType, numLocations);
@@ -83,19 +100,7 @@ int write_oriented_tap_sequence(int fd, int numLocations, ...) {
 
   for (int i = 0; i < numLocations; i++) {
     action = va_arg(actionType, int);
-    if (action == SLEEP) {
-      usleep(50000);
-    } else if (action == HALF_SLEEP) {
-      usleep(100000);
-    } else if (action == LONG_SLEEP) {
-      usleep(550000);
-    } else {
-      actionLocation[0] = LOCATION_LOOKUP_TOUCH[orientation.doc_type][action]
-                                               [orientation.orientation][0];
-      actionLocation[1] = LOCATION_LOOKUP_TOUCH[orientation.doc_type][action]
-                                               [orientation.orientation][1];
-      write_tap_with_touch(fd, actionLocation);
-    }
+    write_oriented_tap(fd, orientation, action);
   }
 
   va_end(actionType);
@@ -103,27 +108,29 @@ int write_oriented_tap_sequence(int fd, int numLocations, ...) {
 }
 
 int write_oriented_tap_sequence_toolbar(int fd, int numLocations, ...) {
+  toolbar_orientation orientation = get_toolbar_orientation();
+
   int action;
   va_list actionType;
   va_start(actionType, numLocations);
 
   for (int i = 0; i < numLocations; i++) {
     action = va_arg(actionType, int);
-    write_oriented_tap_sequence(fd, 1, action);
+    write_oriented_tap(fd, orientation, action);
   }
 
   // printf("%b\n", assumeTBOpen);
   if (!assumeTBOpen) {
-    write_oriented_tap_sequence(fd, 1, TOOLBAR);
+    write_oriented_tap(fd, orientation, TOOLBAR);
 
     va_start(actionType, numLocations);
 
     for (int i = 0; i < numLocations; i++) {
       action = va_arg(actionType, int);
-      write_oriented_tap_sequence(fd, 1, action);
+      write_oriented_tap(fd, orientation, action);
     }
 
-    write_oriented_tap_sequence(fd, 2, LONG_SLEEP, TOOLBAR);
+    write_oriented_tap(fd, orientation, TOOLBAR);
   }
 
   va_end(actionType);
@@ -161,25 +168,25 @@ void action_redo(int fd_touch) {
 static bool hl = false;
 
 void action_fineliner(int fd_touch) {
-  write_oriented_tap_sequence_toolbar(fd_touch, 7, SELECT, WRITING, HALF_SLEEP, WRITING, LONG_SLEEP, WRITING_FINELINER, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 6, SELECT, WRITING, WRITING, LONG_SLEEP, WRITING_FINELINER, WRITING);
   hl = false;
 }
 
 void action_calligraphy(int fd_touch) {
-  write_oriented_tap_sequence_toolbar(fd_touch, 7, SELECT, WRITING, HALF_SLEEP, WRITING, LONG_SLEEP, WRITING_CALLIGRAPHY, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 6, SELECT, WRITING, WRITING, LONG_SLEEP, WRITING_CALLIGRAPHY, WRITING);
   hl = false;
 }
 
 void action_black(int fd_touch) {
-  write_oriented_tap_sequence_toolbar(fd_touch, 7, SELECT, WRITING, HALF_SLEEP, WRITING, LONG_SLEEP, WRITING_BLACK, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 6, SELECT, WRITING, WRITING, LONG_SLEEP, WRITING_BLACK, WRITING);
 }
 
 void action_grey(int fd_touch) {
-  write_oriented_tap_sequence_toolbar(fd_touch, 7, SELECT, WRITING, HALF_SLEEP, WRITING, LONG_SLEEP, WRITING_GREY, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 6, SELECT, WRITING, WRITING, LONG_SLEEP, WRITING_GREY, WRITING);
 }
 
 void action_hl(int fd_touch) {
-  write_oriented_tap_sequence_toolbar(fd_touch, 7, SELECT, WRITING, HALF_SLEEP, WRITING, LONG_SLEEP, WRITING_HL, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 6, SELECT, WRITING, WRITING, LONG_SLEEP, WRITING_HL, WRITING);
   hl = true;
 }
 
@@ -239,13 +246,13 @@ static int oneOffEraseSelect = 0;
 
 void activate_tool_eraser_select(int fd_touch) {
   printf("activating eraser select...\n");
-  write_oriented_tap_sequence_toolbar(fd_touch, 6, ERASER_PANEL, HALF_SLEEP, ERASER_PANEL, LONG_SLEEP, ERASER_SELECTION, ERASER_PANEL);
+  write_oriented_tap_sequence_toolbar(fd_touch, 3, ERASER_PANEL, ERASER_PANEL, ERASER_SELECTION, ERASER_PANEL);
   toolEraseSelect = 1;
 }
 
 void deactivate_tool_eraser_select(int fd_touch) {
   // printf("Deactivating ToolEraseSelect: writing writing_tool on\n");
-  write_oriented_tap_sequence_toolbar(fd_touch, 1, WRITING);
+  write_oriented_tap_sequence_toolbar(fd_touch, 2, WRITING, SLEEP);
   toolEraseSelect = 0;
 }
 
@@ -299,12 +306,12 @@ void one_off_erase_select(int fd_touch) {
 
 void pen_up(int fd_touch) {
   if (oneOffEraseSelect) {
-    write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP);
+    write_oriented_tap_sequence(fd_touch, 3, LONG_SLEEP, LONG_SLEEP, LONG_SLEEP);
     deactivate_tool_eraser_select(fd_touch);
     oneOffEraseSelect = false;
   }
   else if (oneOffHl) {
-    write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP);
+    write_oriented_tap_sequence(fd_touch, 2, LONG_SLEEP, LONG_SLEEP, LONG_SLEEP);
     action_fineliner(fd_touch);
     oneOffHl = false;
   }

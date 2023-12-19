@@ -30,6 +30,11 @@ int get_triggger(struct input_event *ev_pen) {
   static bool           possiblyReleased;
   static bool           possiblyLongClick;
   static bool           longClick;
+  static bool           abortPenUp;
+  static struct timeval possiblyLiftedTime;
+  static bool           possiblyLifted;
+  static bool           possiblyLiftedGotClick;
+  static bool           possiblyLiftedGotContact;
 
   int trigger = NULL_TRIGGER;
 
@@ -45,6 +50,10 @@ int get_triggger(struct input_event *ev_pen) {
         possiblyLongClick = false;
         longClick = false;
         contact = false;
+        abortPenUp = false;
+        possiblyLifted = false;
+        possiblyLiftedGotContact = false;
+        possiblyLiftedGotClick = false;
         if (sent) {
           trigger = 0x40 | clicks; // press hold off type message 0b01xxxxxx
           sent    = false;
@@ -59,15 +68,59 @@ int get_triggger(struct input_event *ev_pen) {
     abort = true;
   }
 
-  if (ev_pen->code == ABS_DISTANCE && contact) {
-    printf("Pen lifted from screen\n");
-    contact = false;
-    trigger = PEN_UP; // pen-up type message
+  if (possiblyLifted) {
+    double elapsedTime = getTimeDelta(&(ev_pen->time), &possiblyLiftedTime);
+
+    if (elapsedTime > MAX_CONTACT_CLICK_TIME) {
+      printf("Pen lifted from screen %f\n", elapsedTime);
+
+      possiblyLiftedGotContact = false;
+      possiblyLiftedGotClick = false;
+      possiblyLifted = false;
+
+      contact = false;
+      if (!abortPenUp) {
+        trigger = PEN_UP; // pen-up type message
+      }
+      else {
+        printf("Aborted PEN_UP trigger\n");
+        abortPenUp = false;
+      }
+    }
+    else {
+      if (ev_pen->code == BTN_STYLUS && ev_pen->value == 1) {
+        // printf("got click\n");
+        possiblyLiftedGotClick = true;
+      }
+
+      if (ev_pen->code == ABS_DISTANCE && ev_pen->value == 0) {
+        // printf("got contact\n");
+        possiblyLiftedGotContact = true;
+      }
+
+      if (possiblyLiftedGotClick && possiblyLiftedGotContact) {
+        printf("Fake lift\n");
+        // abort, this was a fake lift
+        possiblyLiftedGotContact = false;
+        possiblyLiftedGotClick = false;
+        possiblyLifted = false;
+      }
+    }
+  } else if (contact) {
+    if (ev_pen->code == ABS_DISTANCE){
+      printf("Possible lift detected\n");
+      // don't register lift immediately to ignore spurious signals
+      // when pressing button with pen on screen
+      if (!possiblyLifted) possiblyLiftedTime = ev_pen->time;
+      possiblyLifted = true;
+    }
+  } else {
+    if (ev_pen->code == ABS_DISTANCE && ev_pen->value == 0) {
+      printf("Pen contact\n");
+      contact = true;
+    }
   }
 
-  if (ev_pen->code == ABS_DISTANCE && ev_pen->value == 0) {
-    contact = true;
-  }
 
   bool released = false;
 
@@ -95,11 +148,16 @@ int get_triggger(struct input_event *ev_pen) {
   if (sent && ev_pen->code == ABS_PRESSURE) possiblyLongClick = false; // abort long click if pen touches screen
 
   if (ev_pen->code == BTN_STYLUS && ev_pen->value == 1) {
-    prevTime = ev_pen->time; // update most recent time
-    clicks += 1;
-    // don't set the trigger as we don't have enough
-    // info to ascertain the state yet.
-    clickRegistered = false;
+    if (!contact) {
+      prevTime = ev_pen->time; // update most recent time
+      clicks += 1;
+      // don't set the trigger as we don't have enough
+      // info to ascertain the state yet.
+      clickRegistered = false;
+    } else {
+      printf("contact press\n");
+      abortPenUp = true;
+    }
   }
 
   if (longClick) {

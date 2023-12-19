@@ -148,6 +148,10 @@ int main(int argc, char *argv[]) {
   for (;;) {
     if (read(fd_touch, &ev_touch, input_event_size)) { // non-blocking
       handle_current_tracking_ID(&ev_touch);
+      // you can get a continous stream of touch events by holding the pen close to the screen while tapping with your finger
+      if (ev_touch.code == ABS_MT_POSITION_X || ev_touch.code == ABS_MT_POSITION_Y) {
+        // printf("event: %x, %d\n", ev_touch.code, ev_touch.value);
+      }
     }
     // Note: read pauses until there is data
     read(fd_wacom, &ev_wacom, input_event_size);
