@@ -19,12 +19,14 @@ int get_triggger(struct input_event *ev_pen) {
   // Bits 0-5 encodes the number ie. (click, double click, press and hold,
   // double press and hold)
 
-  static int            clicks  = 0;
+  static int            clicks = 0;
+  static int            segments = 0;
   static bool           clickRegistered;
   static bool           pressHoldSent = 0;
   static struct timeval prevTime;
   static struct timeval abortTime;
   static bool           abort;
+  static struct timeval lastSegmentTime;
   static bool           contact;
   static struct timeval possiblyReleasedTime;
   static bool           possiblyReleased;
@@ -58,7 +60,8 @@ int get_triggger(struct input_event *ev_pen) {
           trigger = 0x40 | clicks; // press hold off type message 0b01xxxxxx
           pressHoldSent    = false;
         }
-        clicks  = 0;
+        clicks   = 0;
+        segments = 0;
       }
     }
   }
@@ -72,7 +75,8 @@ int get_triggger(struct input_event *ev_pen) {
     double elapsedTime = getTimeDelta(&(ev_pen->time), &possiblyLiftedTime);
 
     if (elapsedTime > MAX_CONTACT_CLICK_TIME) {
-      printf("Event: PEN LIFT...\n");
+
+      printf("Event: PEN LIFT (%d segments in this sequence)...\n", segments);
 
       possiblyLiftedGotContact = false;
       possiblyLiftedGotClick = false;
@@ -115,6 +119,8 @@ int get_triggger(struct input_event *ev_pen) {
   } else {
     if (ev_pen->code == ABS_DISTANCE && ev_pen->value == 0) {
       printf("Event: PEN CONTACT...\n");
+      double timeSinceLastSegment = getTimeDelta(&(ev_pen->time), &lastSegmentTime);
+      if (timeSinceLastSegment > MAX_SEGSEQ_DELAY) segments = 0; // new segment sequence
       contact = true;
     }
   }
@@ -140,6 +146,13 @@ int get_triggger(struct input_event *ev_pen) {
   }
 
   if (pressHoldSent && ev_pen->code == ABS_PRESSURE) possiblyLongClick = false; // abort long click if pen touches screen
+  // if (ev_pen->code == ABS_PRESSURE) {
+  //   printf("pressure: %d\n", ev_pen->value);
+  // }
+  if (ev_pen->code == ABS_PRESSURE && ev_pen->value == 0) {
+    // printf("pressure: %d\n", ev_pen->value);
+    segments++; lastSegmentTime = ev_pen->time;
+  }
 
   if (ev_pen->code == BTN_STYLUS && ev_pen->value == 1) {
     if (!contact) {
